@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PoGo Pokemon Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>PoGo Pokemon Tracker</h1>
+      <p>Track caught, shiny, 100%, lucky, XXL and XXS by generation.</p>
+    </header>
+
+    <main class="app-main">
+      <section class="controls" aria-label="Tracker controls">
+        <label class="control-label" for="search-input">Search Pokemon</label>
+        <input id="search-input" type="search" placeholder="Name, dex number, or form id..." />
+        <label class="control-label variant-filter-label" for="variant-filter-select">Variant filter</label>
+        <select id="variant-filter-select">
+          <option value="all">All Pokemon</option>
+          <option value="caught">Caught</option>
+          <option value="uncaught">Not Caught</option>
+          <option value="shiny">Shiny</option>
+          <option value="hundo">100%</option>
+          <option value="lucky">Lucky</option>
+          <option value="xxl">XXL</option>
+          <option value="xxs">XXS</option>
+        </select>
+
+        <fieldset class="search-builder">
+          <legend>Pokemon GO search string builder</legend>
+          <p>Exclude species when all selected variants are already owned.</p>
+          <div class="builder-options">
+            <label><input type="checkbox" name="builder-variant" value="hundo" checked /> 100%</label>
+            <label><input type="checkbox" name="builder-variant" value="lucky" checked /> Lucky</label>
+            <label><input type="checkbox" name="builder-variant" value="shiny" /> Shiny</label>
+            <label><input type="checkbox" name="builder-variant" value="xxl" /> XXL</label>
+            <label><input type="checkbox" name="builder-variant" value="xxs" /> XXS</label>
+          </div>
+          <div class="builder-actions">
+            <button id="build-search-btn" type="button">Build search string</button>
+            <button id="copy-search-btn" type="button">Copy</button>
+          </div>
+          <textarea id="go-search-output" rows="3" readonly placeholder="Search string appears here..."></textarea>
+        </fieldset>
+
+        <div class="control-row">
+          <button id="expand-all-btn" type="button">Expand all</button>
+          <button id="collapse-all-btn" type="button">Collapse all</button>
+          <button id="export-btn" type="button">Export progress</button>
+          <button id="import-btn" type="button">Import progress</button>
+          <input id="import-file-input" type="file" accept="application/json" hidden />
+        </div>
+      </section>
+
+      <section id="status" class="status">Loading Pokedex...</section>
+      <section id="generation-list" class="generation-list" aria-live="polite"></section>
+    </main>
+
+    <template id="pokemon-card-template">
+      <article class="pokemon-card">
+        <div class="pokemon-media">
+          <img class="pokemon-image" alt="" loading="lazy" decoding="async" />
+          <div class="pokemon-image-na" hidden>N/A</div>
+        </div>
+        <div class="pokemon-info">
+          <h3 class="pokemon-name"></h3>
+          <p class="pokemon-meta"></p>
+          <div class="caught-row"></div>
+          <div class="variant-grid"></div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
