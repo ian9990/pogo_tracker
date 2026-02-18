@@ -116,11 +116,20 @@ function renderGenerations(grouped) {
     details.appendChild(summary);
     details.appendChild(contentWrapper);
     listEl.appendChild(details);
+
+    summary.addEventListener("click", (e) => {
+      e.preventDefault();
+      details.classList.toggle("is-open");
+      details.open = details.classList.contains("is-open");
+    });
   }
 
   for (const d of listEl.querySelectorAll(".generation")) {
     const g = Number(d.dataset.gen);
-    if (openGens.has(g) || (openGens.size === 0 && g === 1)) d.open = true;
+    const shouldOpen = openGens.has(g) || (openGens.size === 0 && g === 1);
+    d.open = shouldOpen;
+    if (shouldOpen) d.classList.add("is-open");
+    else d.classList.remove("is-open");
   }
 }
 
@@ -168,8 +177,12 @@ function renderPokemonCard(pokemon) {
     }
     saveState(state);
     updateSearchStringOutput();
-    const cardEl = e.currentTarget.closest(".pokemon-card");
-    if (cardEl && state[pokemon.key].caught) {
+    const caughtBtn = e.currentTarget;
+    const nowCaught = Boolean(state[pokemon.key].caught);
+    caughtBtn.classList.toggle("is-active", nowCaught);
+    caughtBtn.setAttribute("aria-pressed", String(nowCaught));
+    const cardEl = caughtBtn.closest(".pokemon-card");
+    if (cardEl && nowCaught) {
       expandCardToCaught(cardEl, pokemon);
     } else if (cardEl) {
       cardEl.classList.remove("is-caught");
@@ -311,7 +324,10 @@ function bindControls() {
 
 function setAllGenerationsOpen(open) {
   const generations = listEl.querySelectorAll(".generation");
-  for (const section of generations) section.open = open;
+  for (const section of generations) {
+    section.open = open;
+    section.classList.toggle("is-open", open);
+  }
 }
 
 function getGenerationProgressText(entries) {

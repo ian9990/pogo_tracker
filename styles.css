@@ -193,7 +193,7 @@ body {
   overflow: hidden;
 }
 
-.generation[open] .generation-content-wrapper {
+.generation.is-open .generation-content-wrapper {
   grid-template-rows: 1fr;
 }
 
