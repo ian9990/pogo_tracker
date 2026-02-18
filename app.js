@@ -81,13 +81,19 @@ function groupByGeneration(pokemon) {
 }
 
 function renderGenerations(grouped) {
+  const openGens = new Set();
+  for (const d of listEl.querySelectorAll(".generation[open]")) {
+    const g = d.dataset.gen;
+    if (g !== undefined) openGens.add(Number(g));
+  }
+
   listEl.innerHTML = "";
   const generations = [...grouped.keys()].sort((a, b) => a - b);
 
   for (const gen of generations) {
     const details = document.createElement("details");
     details.className = "generation";
-    if (gen === 1) details.open = true;
+    details.dataset.gen = String(gen);
 
     const summary = document.createElement("summary");
     const entries = grouped.get(gen);
@@ -96,6 +102,9 @@ function renderGenerations(grouped) {
     count.textContent = getGenerationProgressText(entries);
     summary.appendChild(count);
 
+    const contentWrapper = document.createElement("div");
+    contentWrapper.className = "generation-content-wrapper";
+
     const content = document.createElement("div");
     content.className = "generation-content";
 
@@ -103,9 +112,15 @@ function renderGenerations(grouped) {
       content.appendChild(renderPokemonCard(pokemon));
     }
 
+    contentWrapper.appendChild(content);
     details.appendChild(summary);
-    details.appendChild(content);
+    details.appendChild(contentWrapper);
     listEl.appendChild(details);
+  }
+
+  for (const d of listEl.querySelectorAll(".generation")) {
+    const g = Number(d.dataset.gen);
+    if (openGens.has(g) || (openGens.size === 0 && g === 1)) d.open = true;
   }
 }
 
@@ -119,6 +134,7 @@ function renderPokemonCard(pokemon) {
   const caughtRow = fragment.querySelector(".caught-row");
   const variantGrid = fragment.querySelector(".variant-grid");
 
+  card.dataset.pokemonKey = pokemon.key;
   nameEl.textContent = pokemon.name;
   metaEl.textContent = `#${String(pokemon.dexNr).padStart(3, "0")} - ${pokemon.formId}`;
 
@@ -142,17 +158,26 @@ function renderPokemonCard(pokemon) {
   }
 
   const pokemonState = state[pokemon.key] ?? {};
-  const caughtButton = createVariantButton("caught", Boolean(pokemonState.caught), () => {
+  const caughtButton = createVariantButton("caught", Boolean(pokemonState.caught), (e) => {
     if (!state[pokemon.key]) state[pokemon.key] = {};
     state[pokemon.key].caught = !Boolean(state[pokemon.key].caught);
     if (!state[pokemon.key].caught) {
-      for (const variant of VARIANTS) {
-        if (variant !== "caught") state[pokemon.key][variant] = false;
+      for (const v of VARIANTS) {
+        if (v !== "caught") state[pokemon.key][v] = false;
       }
     }
     saveState(state);
     updateSearchStringOutput();
-    applyFiltersAndRender();
+    const cardEl = e.currentTarget.closest(".pokemon-card");
+    if (cardEl && state[pokemon.key].caught) {
+      expandCardToCaught(cardEl, pokemon);
+    } else if (cardEl) {
+      cardEl.classList.remove("is-caught");
+      cardEl.classList.add("is-compact");
+      cardEl.querySelector(".variant-grid").innerHTML = "";
+    }
+    const detailsEl = cardEl?.closest(".generation");
+    if (detailsEl) refreshGenerationSummary(detailsEl);
   });
   caughtRow.appendChild(caughtButton);
 
@@ -160,12 +185,15 @@ function renderPokemonCard(pokemon) {
     card.classList.add("is-caught");
     for (const variant of VARIANTS) {
       if (variant === "caught") continue;
-      const variantButton = createVariantButton(variant, Boolean(pokemonState[variant]), () => {
+      const variantButton = createVariantButton(variant, Boolean(pokemonState[variant]), (e) => {
         if (!state[pokemon.key]) state[pokemon.key] = {};
         state[pokemon.key][variant] = !Boolean(state[pokemon.key][variant]);
         saveState(state);
         updateSearchStringOutput();
-        applyFiltersAndRender();
+        const btn = e.currentTarget;
+        const active = Boolean(state[pokemon.key][variant]);
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-pressed", String(active));
       });
       variantGrid.appendChild(variantButton);
     }
@@ -174,6 +202,42 @@ function renderPokemonCard(pokemon) {
   }
 
   return card;
+}
+
+function getFilteredPokemon() {
+  return allPokemon.filter((entry) => matchesSearch(entry) && matchesVariantFilter(entry));
+}
+
+function refreshGenerationSummary(detailsEl) {
+  const gen = Number(detailsEl.dataset.gen);
+  const filtered = getFilteredPokemon();
+  const grouped = groupByGeneration(filtered);
+  const entries = grouped.get(gen) || [];
+  const span = detailsEl.querySelector("summary span");
+  if (span) span.textContent = getGenerationProgressText(entries);
+}
+
+function expandCardToCaught(cardEl, pokemon) {
+  cardEl.classList.remove("is-compact");
+  cardEl.classList.add("is-caught");
+  const variantGrid = cardEl.querySelector(".variant-grid");
+  if (!variantGrid) return;
+  variantGrid.innerHTML = "";
+  const pokemonState = state[pokemon.key] ?? {};
+  for (const variant of VARIANTS) {
+    if (variant === "caught") continue;
+    const variantButton = createVariantButton(variant, Boolean(pokemonState[variant]), (e) => {
+      if (!state[pokemon.key]) state[pokemon.key] = {};
+      state[pokemon.key][variant] = !Boolean(state[pokemon.key][variant]);
+      saveState(state);
+      updateSearchStringOutput();
+      const btn = e.currentTarget;
+      const active = Boolean(state[pokemon.key][variant]);
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-pressed", String(active));
+    });
+    variantGrid.appendChild(variantButton);
+  }
 }
 
 function bindControls() {
