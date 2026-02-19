@@ -82,7 +82,7 @@ function groupByGeneration(pokemon) {
 
 function renderGenerations(grouped) {
   const openGens = new Set();
-  for (const d of listEl.querySelectorAll(".generation[open]")) {
+  for (const d of listEl.querySelectorAll(".generation.is-open")) {
     const g = d.dataset.gen;
     if (g !== undefined) openGens.add(Number(g));
   }
@@ -91,16 +91,18 @@ function renderGenerations(grouped) {
   const generations = [...grouped.keys()].sort((a, b) => a - b);
 
   for (const gen of generations) {
-    const details = document.createElement("details");
-    details.className = "generation";
-    details.dataset.gen = String(gen);
+    const section = document.createElement("div");
+    section.className = "generation";
+    section.dataset.gen = String(gen);
 
-    const summary = document.createElement("summary");
+    const header = document.createElement("button");
+    header.type = "button";
+    header.className = "generation-header";
     const entries = grouped.get(gen);
-    summary.append(gen > 0 ? `Generation ${gen}` : "Unknown Generation");
+    header.append(gen > 0 ? `Generation ${gen}` : "Unknown Generation");
     const count = document.createElement("span");
     count.textContent = getGenerationProgressText(entries);
-    summary.appendChild(count);
+    header.appendChild(count);
 
     const contentWrapper = document.createElement("div");
     contentWrapper.className = "generation-content-wrapper";
@@ -113,23 +115,22 @@ function renderGenerations(grouped) {
     }
 
     contentWrapper.appendChild(content);
-    details.appendChild(summary);
-    details.appendChild(contentWrapper);
-    listEl.appendChild(details);
+    section.appendChild(header);
+    section.appendChild(contentWrapper);
+    listEl.appendChild(section);
 
-    summary.addEventListener("click", (e) => {
-      e.preventDefault();
-      details.classList.toggle("is-open");
-      details.open = details.classList.contains("is-open");
+    header.addEventListener("click", () => {
+      const isOpen = section.classList.toggle("is-open");
+      header.setAttribute("aria-expanded", String(isOpen));
     });
   }
 
-  for (const d of listEl.querySelectorAll(".generation")) {
-    const g = Number(d.dataset.gen);
+  for (const section of listEl.querySelectorAll(".generation")) {
+    const g = Number(section.dataset.gen);
     const shouldOpen = openGens.has(g) || (openGens.size === 0 && g === 1);
-    d.open = shouldOpen;
-    if (shouldOpen) d.classList.add("is-open");
-    else d.classList.remove("is-open");
+    section.classList.toggle("is-open", shouldOpen);
+    const header = section.querySelector(".generation-header");
+    if (header) header.setAttribute("aria-expanded", String(shouldOpen));
   }
 }
 
@@ -189,8 +190,8 @@ function renderPokemonCard(pokemon) {
       cardEl.classList.add("is-compact");
       cardEl.querySelector(".variant-grid").innerHTML = "";
     }
-    const detailsEl = cardEl?.closest(".generation");
-    if (detailsEl) refreshGenerationSummary(detailsEl);
+    const sectionEl = cardEl?.closest(".generation");
+    if (sectionEl) refreshGenerationSummary(sectionEl);
   });
   caughtRow.appendChild(caughtButton);
 
@@ -221,12 +222,12 @@ function getFilteredPokemon() {
   return allPokemon.filter((entry) => matchesSearch(entry) && matchesVariantFilter(entry));
 }
 
-function refreshGenerationSummary(detailsEl) {
-  const gen = Number(detailsEl.dataset.gen);
+function refreshGenerationSummary(sectionEl) {
+  const gen = Number(sectionEl.dataset.gen);
   const filtered = getFilteredPokemon();
   const grouped = groupByGeneration(filtered);
   const entries = grouped.get(gen) || [];
-  const span = detailsEl.querySelector("summary span");
+  const span = sectionEl.querySelector(".generation-header span");
   if (span) span.textContent = getGenerationProgressText(entries);
 }
 
@@ -325,8 +326,9 @@ function bindControls() {
 function setAllGenerationsOpen(open) {
   const generations = listEl.querySelectorAll(".generation");
   for (const section of generations) {
-    section.open = open;
     section.classList.toggle("is-open", open);
+    const header = section.querySelector(".generation-header");
+    if (header) header.setAttribute("aria-expanded", String(open));
   }
 }
 
