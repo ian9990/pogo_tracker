@@ -1,5 +1,5 @@
 const TRACKER_STORAGE_KEY = "pogo-tracker-state-v1";
-const VARIANTS = ["caught", "shiny", "hundo", "lucky", "xxl", "xxs"];
+const VARIANTS = ["caught", "shiny", "hundo", "lucky", "xxl", "xxs", "gl", "ul"];
 const VARIANT_LABELS = {
   caught: "Caught",
   shiny: "Shiny",
@@ -7,6 +7,8 @@ const VARIANT_LABELS = {
   lucky: "Lucky",
   xxl: "XXL",
   xxs: "XXS",
+  gl: "GL",
+  ul: "UL",
 };
 
 const statusEl = document.querySelector("#status");
@@ -262,6 +264,8 @@ function bindControls() {
   for (const input of builderInputs) {
     input.addEventListener("change", updateSearchStringOutput);
   }
+  const excludeToggle = document.getElementById("search-string-exclude");
+  if (excludeToggle) excludeToggle.addEventListener("change", updateSearchStringOutput);
   copySearchBtnEl.addEventListener("click", async () => {
     const text = goSearchOutputEl.value.trim();
     if (!text) return;
@@ -400,15 +404,19 @@ function updateSearchStringOutput() {
     return;
   }
 
-  const speciesToExclude = getSpeciesMatchingAllVariants(selectedVariants);
-  if (!speciesToExclude.length) {
+  const speciesMatched = getSpeciesMatchingAllVariants(selectedVariants);
+  if (!speciesMatched.length) {
     goSearchOutputEl.value = "";
     goSearchOutputEl.placeholder = "No species match your selected completion criteria yet.";
     return;
   }
 
-  // Pokemon GO exclusion filter: chain negations with AND.
-  goSearchOutputEl.value = speciesToExclude.map((dexNr) => `!${dexNr}`).join("&");
+  const excludeMode = document.getElementById("search-string-exclude")?.checked !== false;
+  if (excludeMode) {
+    goSearchOutputEl.value = speciesMatched.map((dexNr) => `!${dexNr}`).join("&");
+  } else {
+    goSearchOutputEl.value = speciesMatched.join("&");
+  }
 }
 
 function getBuilderSelectedVariants() {

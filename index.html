@@ -26,18 +26,26 @@
           <option value="lucky">Lucky</option>
           <option value="xxl">XXL</option>
           <option value="xxs">XXS</option>
+          <option value="gl">GL</option>
+          <option value="ul">UL</option>
         </select>
 
         <fieldset class="search-builder">
           <legend>Pokemon GO search string builder</legend>
-          <p>Exclude species when all selected variants are already owned.</p>
+          <p>Species where all selected variants are already owned.</p>
           <div class="builder-options">
             <label><input type="checkbox" name="builder-variant" value="hundo" checked /> 100%</label>
             <label><input type="checkbox" name="builder-variant" value="lucky" checked /> Lucky</label>
             <label><input type="checkbox" name="builder-variant" value="shiny" /> Shiny</label>
             <label><input type="checkbox" name="builder-variant" value="xxl" /> XXL</label>
             <label><input type="checkbox" name="builder-variant" value="xxs" /> XXS</label>
+            <label><input type="checkbox" name="builder-variant" value="gl" /> GL</label>
+            <label><input type="checkbox" name="builder-variant" value="ul" /> UL</label>
           </div>
+          <label class="builder-toggle-label">
+            <input type="checkbox" id="search-string-exclude" checked />
+            <span>Exclude from search (uncheck to include only these)</span>
+          </label>
           <div class="builder-actions">
             <button id="build-search-btn" type="button">Build search string</button>
             <button id="copy-search-btn" type="button">Copy</button>
