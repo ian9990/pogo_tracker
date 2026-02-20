@@ -1,9 +1,11 @@
 const TRACKER_STORAGE_KEY = "pogo-tracker-state-v1";
-const VARIANTS = ["caught", "shiny", "hundo", "lucky", "xxl", "xxs", "gl", "ul"];
+const VARIANTS = ["caught", "shiny", "hundo", "shundo", "nundo", "lucky", "xxl", "xxs", "gl", "ul"];
 const VARIANT_LABELS = {
   caught: "Caught",
   shiny: "Shiny",
   hundo: "100%",
+  shundo: "Shundo",
+  nundo: "Nundo",
   lucky: "Lucky",
   xxl: "XXL",
   xxs: "XXS",
